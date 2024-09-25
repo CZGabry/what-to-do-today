@@ -1,70 +1,170 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React, { useState, useEffect } from 'react';
+import { FlatList, StyleSheet, View, Modal, TouchableOpacity, Text, Alert } from 'react-native';
+import { Checkbox } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import TaskForm from '../components/TaskForm';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const TASKS_STORAGE_KEY = '@tasks';
+
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      const storedTasks = await AsyncStorage.getItem(TASKS_STORAGE_KEY);
+      if (storedTasks !== null) {
+        setTasks(JSON.parse(storedTasks));
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to load tasks.');
+    }
+  };
+
+  const saveTasks = async (tasksToSave: Task[]) => {
+    try {
+      await AsyncStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(tasksToSave));
+    } catch (error) {
+      Alert.alert('Error', 'Failed to save tasks.');
+    }
+  };
+
+  const addTask = (newTask: Task) => {
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks); 
+    setModalVisible(false);
+  };
+
+  const toggleTaskCompletion = (taskId: string) => {
+    const updatedTasks = tasks.map((task) =>
+      task.id === taskId ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks); 
+  };
+
+  const renderTask = ({ item }: { item: Task }) => (
+    <ThemedView style={styles.taskContainer}>
+      <View style={styles.checkboxContainer}>
+        <Checkbox
+          status={item.completed ? 'checked' : 'unchecked'}
+          onPress={() => toggleTaskCompletion(item.id)}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <View style={styles.taskDetails}>
+          <Text style={styles.taskTitle}>{item.title}</Text>
+          <Text style={styles.taskNotes}>Notes: {item.notes}</Text>
+          <Text style={styles.taskDueDate}>Due: {item.dueDate}</Text>
+        </View>
+      </View>
+    </ThemedView>
+  );
+
+  const renderHeader = () => (
+    <ThemedView style={styles.headerContainer}>
+      <ThemedText type="title">What to do today</ThemedText>
+    </ThemedView>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={tasks}
+        keyExtractor={(item) => item.id}
+        renderItem={renderTask}
+        ListHeaderComponent={renderHeader}
+        contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={() => (
+          <ThemedText type="default">No tasks added yet.</ThemedText>
+        )}
+      />
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <TaskForm onSubmit={addTask} onClose={() => setModalVisible(false)} />
+        </View>
+      </Modal>
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  headerContainer: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  listContainer: {
+    padding: 16,
+  },
+  taskContainer: {
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 8,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  taskDetails: {
+    marginLeft: 10,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  taskTitle: {
+    fontWeight: 'bold',
+  },
+  taskNotes: {
+    fontStyle: 'italic',
+    color: '#555',
+  },
+  taskDueDate: {
+    color: '#888',
+  },
+  fab: {
     position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#007AFF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  fabText: {
+    color: '#fff',
+    fontSize: 24,
+  },
+  modalView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 });
