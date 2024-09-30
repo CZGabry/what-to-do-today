@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, Button, TouchableOpacity, Text, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { StyleSheet } from 'react-native';
+
 interface TaskFormProps {
   onSubmit: (task: { id: string; title: string; completed: boolean; notes: string; dueDate: string }) => void;
   onClose: () => void;
@@ -21,6 +22,11 @@ export default function TaskForm({ onSubmit, onClose }: TaskFormProps) {
   };
 
   const handleSubmit = () => {
+    if (title.trim() === '') {
+      Alert.alert('Validation Error', 'Task name is required.');
+      return;
+    }
+
     const newTask = {
       id: Date.now().toString(),
       title,
@@ -31,32 +37,48 @@ export default function TaskForm({ onSubmit, onClose }: TaskFormProps) {
     onSubmit(newTask);
   };
 
+  const handleTitleChange = (text: string) => {
+    if (text.length <= 15) {
+      setTitle(text);
+    }
+  };
+
+  const handleNotesChange = (text: string) => {
+    if (text.length <= 40) {
+      setNotes(text);
+    }
+  };
+
   return (
-    <View style={{ padding: 20, backgroundColor: '#fff', borderRadius: 10 }}>
+    <View style={styles.modalContainer}>
       <TextInput
-        placeholder="Task name"
+        placeholder="Task name (max 15 chars)"
         value={title}
-        onChangeText={setTitle}
-        style={{ marginBottom: 10, borderBottomWidth: 1, padding: 5 }}
+        onChangeText={handleTitleChange}
+        style={styles.input}
       />
+      <Text style={styles.charCount}>{15 - title.length} characters remaining</Text>
 
       <TextInput
-        placeholder="Task notes"
+        placeholder="Task notes (max 40 chars)"
         value={notes}
-        onChangeText={setNotes}
+        onChangeText={handleNotesChange}
         multiline={true}
-        style={{ marginBottom: 10, borderBottomWidth: 1, padding: 5 }}
+        style={styles.notesInput}
       />
+      <Text style={styles.charCount}>{40 - notes.length} characters remaining</Text>
 
-      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={{ padding: 10, backgroundColor: '#eee', marginBottom: 10 }}>
-        <Text>Select Due Date: {dueDate}</Text>
+      <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePicker}>
+        <Text>Date: {dueDate}</Text>
       </TouchableOpacity>
+
       {showDatePicker && (
         <DateTimePicker
           value={new Date(dueDate)}
           mode="date"
           display="default"
           onChange={handleDateChange}
+          minimumDate={new Date()}  // Only allow current and future dates
         />
       )}
 
@@ -71,14 +93,43 @@ export default function TaskForm({ onSubmit, onClose }: TaskFormProps) {
     </View>
   );
 }
+
 const styles = StyleSheet.create({
-    buttonContainer: {
-      flexDirection: 'row' as const, 
-      justifyContent: 'space-between',
-    },
-    button: {
-      flex: 1,
-      marginHorizontal: 5, 
-    },
-  });
-  
+  modalContainer: {
+    padding: 30,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    width: '90%',
+    alignSelf: 'center',
+  },
+  input: {
+    marginBottom: 5,
+    borderBottomWidth: 1,
+    padding: 5,
+  },
+  notesInput: {
+    marginBottom: 5,
+    borderBottomWidth: 1,
+    padding: 5,
+    height: 100,
+  },
+  charCount: {
+    fontSize: 12,
+    color: '#888',
+    marginBottom: 10,
+    textAlign: 'right',
+  },
+  datePicker: {
+    padding: 10,
+    backgroundColor: '#eee',
+    marginBottom: 10,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  button: {
+    flex: 1,
+    marginHorizontal: 5,
+  },
+});
