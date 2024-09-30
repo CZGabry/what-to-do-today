@@ -1,5 +1,5 @@
-import IndexScreen from '../../components/IndexComponent';
+import HomeScreen from '../index';
 
 export default function TodayScreen() {
-  return <IndexScreen filter="today" headerTitle='What to do today' />;
+  return <HomeScreen filter="today" headerTitle='What to do today' />;
 }

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import {StyleSheet, View, Modal, TouchableOpacity, Text, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, isToday, isBefore, isAfter, parseISO } from 'date-fns';
-import TaskForm from './TaskForm'; // Assuming TaskForm is implemented separately
-import TodayTasks from './TodayTasks'; // Import the new TodayTasks component
-import TomorrowTasks from './TomorrowTasks';
+import TaskForm from '../components/TaskForm'; // Assuming TaskForm is implemented separately
+import TodayTasks from '../components/TodayTasks'; // Import the new TodayTasks component
+import TomorrowTasks from '../components/TomorrowTasks';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Icon from 'react-native-vector-icons/FontAwesome'; 
@@ -14,7 +14,7 @@ interface IndexScreenProps {
   headerTitle: string;
 }
 
-export default function IndexScreen({headerTitle, filter }: IndexScreenProps) {
+export default function HomeScreen({headerTitle, filter }: IndexScreenProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const today = new Date();
