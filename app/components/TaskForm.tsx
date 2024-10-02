@@ -38,35 +38,36 @@ export default function TaskForm({ onSubmit, onClose }: TaskFormProps) {
   };
 
   const handleTitleChange = (text: string) => {
-    if (text.length <= 15) {
+    if (text.length <= 30) {
       setTitle(text);
     }
   };
 
   const handleNotesChange = (text: string) => {
-    if (text.length <= 40) {
+    if (text.length <= 50) {
       setNotes(text);
     }
   };
 
   return (
     <View style={styles.modalContainer}>
+      <Text style={styles.text}>What do we need to do?</Text>
       <TextInput
-        placeholder="Task name (max 15 chars)"
+        placeholder="Task name (max 30 chars)"
         value={title}
         onChangeText={handleTitleChange}
         style={styles.input}
       />
-      <Text style={styles.charCount}>{15 - title.length} characters remaining</Text>
+      <Text style={styles.charCount}>{30 - title.length} characters remaining</Text>
 
       <TextInput
-        placeholder="Task notes (max 40 chars)"
+        placeholder="Task notes (max 50 chars)"
         value={notes}
         onChangeText={handleNotesChange}
         multiline={true}
         style={styles.notesInput}
       />
-      <Text style={styles.charCount}>{40 - notes.length} characters remaining</Text>
+      <Text style={styles.charCount}>{50 - notes.length} characters remaining</Text>
 
       <TouchableOpacity onPress={() => setShowDatePicker(true)} style={styles.datePicker}>
         <Text>Date: {dueDate}</Text>
@@ -84,10 +85,10 @@ export default function TaskForm({ onSubmit, onClose }: TaskFormProps) {
 
       <View style={styles.buttonContainer}>
         <View style={styles.button}>
-          <Button title="Add Task" onPress={handleSubmit} />
+          <Button title="Add Task" onPress={handleSubmit} color="#6750a4" />
         </View>
         <View style={styles.button}>
-          <Button title="Close" onPress={onClose} />
+          <Button title="Close" onPress={onClose} color="#6750a4" />
         </View>
       </View>
     </View>
@@ -131,5 +132,12 @@ const styles = StyleSheet.create({
   button: {
     flex: 1,
     marginHorizontal: 5,
+  },
+  text: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });

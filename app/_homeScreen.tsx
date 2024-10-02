@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import {StyleSheet, View, Modal, TouchableOpacity, Text, Alert } from 'react-native';
+import { StyleSheet, View, Modal, TouchableOpacity, Text, Alert, SafeAreaView, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, isToday, isBefore, isAfter, parseISO } from 'date-fns';
-import TaskForm from '../components/TaskForm'; // Assuming TaskForm is implemented separately
-import TodayTasks from '../components/TodayTasks'; // Import the new TodayTasks component
-import TomorrowTasks from '../components/TomorrowTasks';
+import TaskForm from './components/TaskForm'; // Assuming TaskForm is implemented separately
+import TodayTasks from './components/TodayTasks'; // Import the new TodayTasks component
+import TomorrowTasks from './components/TomorrowTasks';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import Icon from 'react-native-vector-icons/FontAwesome'; 
@@ -14,7 +14,7 @@ interface IndexScreenProps {
   headerTitle: string;
 }
 
-export default function HomeScreen({headerTitle, filter }: IndexScreenProps) {
+export default function HomeScreen({ headerTitle, filter }: IndexScreenProps) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalVisible, setModalVisible] = useState(false);
   const today = new Date();
@@ -61,18 +61,17 @@ export default function HomeScreen({headerTitle, filter }: IndexScreenProps) {
     if (filter === 'today') {
       return tasks.filter(task => {
         const taskDate = parseISO(task.dueDate);
-        return isToday(taskDate) || isBefore(taskDate, today) && !task.completed;
+        return isToday(taskDate) || (isBefore(taskDate, today) && !task.completed);
       });
     } else if (filter === 'tomorrow') {
       return tasks.filter(task => {
         const taskDate = parseISO(task.dueDate);
         return isAfter(taskDate, today);
       });
-    }
-    else if (filter === 'past') {
+    } else if (filter === 'past') {
       return tasks.filter(task => {
         const taskDate = parseISO(task.dueDate);
-        return isBefore(taskDate, today)&& task.completed;
+        return isBefore(taskDate, today) && task.completed;
       });
     }
     return [];
@@ -109,91 +108,77 @@ export default function HomeScreen({headerTitle, filter }: IndexScreenProps) {
   };
 
   return (
-    <View style={styles.container}>
-      <ThemedView style={styles.headerContainer}>
-        <ThemedText type="title">{headerTitle} <Icon name="tasks" size={24} color="#000" style={styles.icon} /></ThemedText>
-      </ThemedView>
-      {filter === 'today' ? (
-        <TodayTasks tasks={filteredTasks} toggleTaskCompletion={toggleTaskCompletion} deleteTask={deleteTask}/>
-      ) :filter === 'tomorrow'? (
-        <TomorrowTasks tasks={filteredTasks} groupTasksByDate={groupTasksByDate} toggleTaskCompletion={toggleTaskCompletion} deleteTask={deleteTask} />
-      ) : (
-      <TomorrowTasks tasks={filteredTasks} groupTasksByDate={groupTasksByDate} toggleTaskCompletion={toggleTaskCompletion} deleteTask={deleteTask}/>
-      )}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ThemedView style={styles.headerContainer}>
+          <View style={styles.headerContent}>
+            <ThemedText type="title">{headerTitle}</ThemedText>
+            {filter === 'today' || filter === 'tomorrow' ? (
+              <Image source={require('../assets/images/thinking.png')} style={styles.image} />
+            ) : (
+              <Icon name="tasks" size={24} style={styles.icon} />
+            )}
+          </View>
+        </ThemedView>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalView}>
-          <TaskForm onSubmit={addTask} onClose={() => setModalVisible(false)} />
-        </View>
-      </Modal>
+        {filter === 'today' ? (
+          <TodayTasks tasks={filteredTasks} toggleTaskCompletion={toggleTaskCompletion} deleteTask={deleteTask} />
+        ) : filter === 'tomorrow' ? (
+          <TomorrowTasks tasks={filteredTasks} groupTasksByDate={groupTasksByDate} toggleTaskCompletion={toggleTaskCompletion} deleteTask={deleteTask} />
+        ) : (
+          <TomorrowTasks tasks={filteredTasks} groupTasksByDate={groupTasksByDate} toggleTaskCompletion={toggleTaskCompletion} deleteTask={deleteTask} />
+        )}
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
-    </View>
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isModalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalView}>
+            <TaskForm onSubmit={addTask} onClose={() => setModalVisible(false)} />
+          </View>
+        </Modal>
+
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff', // Adjust as needed
+  },
   container: {
     flex: 1,
   },
   headerContainer: {
-    padding: 16,
+    width: '100%',
     alignItems: 'center',
-    marginTop:20,
-    paddingTop:20
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingTop:50
   },
-  listContainer: {
-    padding: 16,
-  },
-  taskContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    marginBottom: 8,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  checkboxContainer: {
+  headerContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  taskDetails: {
-    marginLeft: 10,
-  },
-  taskTitle: {
-    fontWeight: 'bold',
-  },
-  taskNotes: {
-    fontStyle: 'italic',
-    color: '#555',
-  },
-  taskDueDate: {
-    color: '#888',
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    backgroundColor: '#f4f4f4',
-    padding: 8,
-    marginBottom: 4,
-    borderRadius: 4,
-  },
-   icon: {
+  icon: {
     marginLeft: 8, 
-    color: '#6750a4'
+    color: '#6750a4', 
+  },
+  image: {
+    width: 24,
+    height: 24,
+    marginLeft: 8,
   },
   fab: {
     position: 'absolute',
@@ -218,4 +203,3 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
 });
-
