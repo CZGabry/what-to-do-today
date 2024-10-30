@@ -51,6 +51,18 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="views/NotificationsScreen"
+        options={{
+          title: 'Notifications',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon
+              name={focused ? 'calendar' : 'calendar-outline'}
+              color={focused ? activeColor : inactiveColor}  // Apply the custom colors based on focus
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

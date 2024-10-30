@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Image, View, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Notifications from 'expo-notifications'; // Import Notifications here
-import { getNotificationPermissions, scheduleNotification } from '../services/notifications'; // Import your functions
+import { getNotificationPermissions } from '../services/notifications'; // Import your functions
 
 const StartPage = () => {
   const [showRedirect, setShowRedirect] = useState(false);
@@ -11,7 +11,7 @@ const StartPage = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowRedirect(true);
-    }, 1500);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -23,8 +23,7 @@ const StartPage = () => {
   }, [showRedirect]);
 
   useEffect(() => {
-    getNotificationPermissions(); // Request notification permissions
-    scheduleNotification();       // Schedule notifications
+    getNotificationPermissions(); // Request notification permissions    // Schedule notifications
 
     // Add notification response listener
     const subscription = Notifications.addNotificationResponseReceivedListener(response => {
